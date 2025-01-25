@@ -2,7 +2,7 @@ import torch
 from torch import device
 from torch.utils.data import TensorDataset, DataLoader
 
-def create_offline_dataset(dataset, batch_size=256, shuffle=True):
+def create_offline_dataset(dataset, batch_size=256, shuffle=False):
     states, actions, rewards, next_states, next_actions = [], [], [], [], []
 
     for episode in dataset:

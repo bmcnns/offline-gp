@@ -1,8 +1,7 @@
 class ImitationLearner:
-    def __init__(self, regressors, histories, scalers):
+    def __init__(self, regressors, histories):
         self.regressors = regressors
         self.histories = histories
-        self.scalers = scalers
 
     def predict(self, state):
         prediction = []

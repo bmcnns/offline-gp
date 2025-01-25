@@ -6,20 +6,20 @@ if __name__ == '__main__':
         {
             "dataset_name": "Hopper-v2",
             "num_actions": 3,
-            "epochs": 2,
-            "num_threads": 8
+            "epochs": 5,
+            "num_threads": 18
         },
         {
             "dataset_name": "Walker2d-v2",
             "num_actions": 6,
-            "epochs": 2,
-            "num_threads": 8
+            "epochs": 5,
+            "num_threads": 18
         },
         {
             "dataset_name": "HalfCheetah-Expert-v2",
             "num_actions": 6,
-            "epochs": 2,
-            "num_threads": 8
+            "epochs": 5,
+            "num_threads": 18
         }
     ]
 
