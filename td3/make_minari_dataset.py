@@ -1,14 +1,16 @@
 import numpy as np
-import torch
 import gymnasium as gym
 from minari import DataCollector
 from minari.serialization import serialize_space
-from td3.TD3 import TD3
 
-def evaluate(policy, env_name, seed, num_timesteps):
+from stable_baselines3 import TD3
+
+def evaluate(model_path, env_name, seed, num_timesteps):
     """Runs policy for X episodes"""
     
     eval_env = gym.make(env_name)
+
+    model = TD3.load(model_path, env=eval_env)
     
     eval_env = DataCollector(eval_env, record_infos=False)
 
@@ -20,7 +22,7 @@ def evaluate(policy, env_name, seed, num_timesteps):
         state, terminated, truncated = eval_env.reset(seed=(seed+t)), False, False
         state = state[0]
         while not (terminated or truncated):
-            action = policy.select_action(np.array(state))
+            action, _states = model.predict(state, deterministic=True)
             state, reward, terminated, truncated, _ = eval_env.step(action)
             t += 1
 
@@ -53,29 +55,6 @@ def save_dataset(env, env_name):
         author_email="Bryce.MacInnis@dal.ca"
     )
 
-def evaluate_and_save_dataset(model_path, env_name, seed,
-        num_timesteps=1e6, discount=0.99, tau=0.005,
-        policy_noise=0.2, noise_clip=0.5, policy_freq=2):
+def evaluate_and_save_dataset(model_path, env_name, seed, num_timesteps=1e6):
     """Evaluates a TD3 policy and saves the results as a Minari dataset"""
-
-    env = gym.make(env_name)
-
-    env.action_space.seed(seed)
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-
-    kwargs = {
-        "state_dim": env.observation_space.shape[0],
-        "action_dim": env.action_space.shape[0],
-        "max_action": float(env.action_space.high[0]),
-        "discount": discount,
-        "tau": tau,
-        "policy_noise": policy_noise,
-        "noise_clip": noise_clip,
-        "policy_freq": policy_freq
-    }
-
-    policy = TD3(**kwargs)
-    policy.load(model_path)
-
-    evaluate(policy, env_name, seed, num_timesteps)
+    evaluate(model_path, env_name, seed, num_timesteps)
