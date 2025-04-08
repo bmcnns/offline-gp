@@ -3,8 +3,8 @@ import td3.train as TD3
 
 import random
 
-environments = ['Hopper-v5', 'Walker2d-v5','HalfCheetah-v5', 'Swimmer-v5']
-experiments = [ (environment, 24012000) for environment in environments ]
+environments = ['HalfCheetah-v5']
+experiments = [ (environment, random.randint(0, 2**32-1)) for environment in environments ]
 
 # Train TD3 against the following environments
 #for environment, _ in experiments:
@@ -16,4 +16,4 @@ for environment, seed in experiments:
         env_name=environment,
         model_path=f"models/td3/{environment}",
         seed=seed,
-        num_timesteps=1e3)
+        num_timesteps=1e6)
