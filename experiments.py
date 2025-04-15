@@ -23,28 +23,28 @@ experiments = [
     #    "methods": ['MLP', 'Operon'],
     #    "save_path": "models",
     #},
+    #{
+    #    "dataset_name": "Hopper-Expert-v5",
+    #    "independent_runs": 10,
+    #    "methods": ['Operon'],
+    #    "save_path": "models",
+    #},
     {
-        "dataset_name": "Hopper-Expert-v5",
+        "dataset_name": "Walker2d-Expert-v5",
         "independent_runs": 10,
         "methods": ['Operon'],
         "save_path": "models",
     },
     {
-        "dataset_name": "Walker2d-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
         "dataset_name": "Swimmer-Expert-v5",
         "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
+        "methods": ['Operon'],
         "save_path": "models",
     },
     {
         "dataset_name": "HalfCheetah-Expert-v5",
         "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
+        "methods": ['Operon'],
         "save_path": "models",
     },
 ]

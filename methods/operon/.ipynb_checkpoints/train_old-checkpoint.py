@@ -4,7 +4,6 @@ import numpy as np
 import random
 import time
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error
 import os
 import pickle
 
@@ -27,7 +26,7 @@ def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
             inputs = [ h for h in ds.VariableHashes if h != target.Hash ]
             
             # Initialize a RNG
-            rng = Operon.RandomGenerator(random.randint(1, 1_000_000))
+            rng = Operon.RomuTrio(random.randint(1, 1_000_000))
             
             problem = Operon.Problem(ds)
             problem.TrainingRange = training_range
@@ -36,7 +35,7 @@ def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
             problem.InputHashes = inputs
             
             config = Operon.GeneticAlgorithmConfig(
-                generations=1, max_evaluations=1_000_000_000_000_000, local_iterations=5,
+                generations=1000, max_evaluations=1_000_000_000_000_000, local_iterations=5,
                 population_size=1000, pool_size=1000, p_crossover=1.0,
                 p_mutation=0.25, epsilon=1e-5, seed=1, max_time=86400)
             
@@ -93,35 +92,22 @@ def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
             generator = Operon.BasicOffspringGenerator(evaluator, crossover, mutation, selector, selector, local_search)
             
             reinserter = Operon.ReplaceWorstReinserter(objective_index=0)
+            gp = Operon.GeneticProgrammingAlgorithm(config, problem, tree_initializer, coeff_initializer, generator, reinserter)
             
             def report():
                 with open(f'{save_dir}/results.csv', 'a') as f:
-                    print(f'Dataset: {dataset_name},Run: {run},Generation: {generation},Action: {action},Best: {gp.BestModel.GetFitness(0)}\n')
-                    f.write(f'{dataset_name},{run},{generation},{action},{gp.BestModel.GetFitness(0)}\n')
+                    print(f'Dataset: {dataset_name},Run: {run},Generation: {gp.Generation},Action: {action},Best: {gp.BestModel.GetFitness(0)}\n')
+                    f.write(f'{dataset_name},{run},{gp.Generation},{action},{gp.BestModel.GetFitness(0)}\n')
                 
                 pass
             
             # run the algorithm
-            num_generations = 1000
-
-            for generation in range(num_generations):
-                start = np.random.randint(0, 999) * 1000
-                end = start + 1000
-                training_range = Operon.Range(start, end)
-                problem.TrainingRange = training_range
-
-                gp = Operon.GeneticProgrammingAlgorithm(config, problem, tree_initializer, coeff_initializer, generator, reinserter)
-
-                if (generation > 0):
-                    gp.IsFitted = True
-                    gp.RestoreIndividuals(individuals)
-                gp.Run(rng, report, threads=7, warm_start=True)
-                individuals = gp.Individuals
+            gp.Run(rng, report, threads=16)
             
             best = gp.BestModel
             model_string = Operon.InfixFormatter.Format(best.Genotype, ds, 6)
             fit = evaluator(rng, gp.BestModel)
-            print('gen=', generation, '\nfit=', fit)
+            print('gen=', gp.Generation, '\nfit=', fit)
             print(f'\n{model_string}')
 
             models.append(model_string)
