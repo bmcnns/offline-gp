@@ -1,5 +1,4 @@
 __MACOSX__
 venv/
 .idea/
-models/*
 venv2/
