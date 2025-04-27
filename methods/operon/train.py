@@ -8,12 +8,13 @@ from sklearn.metrics import mean_squared_error
 import os
 import pickle
 
-def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
+def train(dataset_name, num_independent_runs, save_dir, hyperparameters, starting_generation=0):
     X, y = load_dataset(dataset_name)
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
     
-    for run in range(num_independent_runs):
+    print(f"Starting at {starting_generation}")
+    for run in range(starting_generation, num_independent_runs):
         models = []
         for action in range(y.shape[1]):
             A = np.column_stack((X, y[:, action]))
@@ -98,7 +99,6 @@ def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
                 with open(f'{save_dir}/results.csv', 'a') as f:
                     print(f'Dataset: {dataset_name},Run: {run},Generation: {generation},Action: {action},Best: {gp.BestModel.GetFitness(0)}\n')
                     f.write(f'{dataset_name},{run},{generation},{action},{gp.BestModel.GetFitness(0)}\n')
-                
                 pass
             
             # run the algorithm
@@ -115,7 +115,7 @@ def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
                 if (generation > 0):
                     gp.IsFitted = True
                     gp.RestoreIndividuals(individuals)
-                gp.Run(rng, report, threads=7, warm_start=True)
+                gp.Run(rng, report, threads=20, warm_start=True)
                 individuals = gp.Individuals
             
             best = gp.BestModel

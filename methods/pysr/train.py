@@ -3,23 +3,27 @@ from dataset import load_dataset
 from sklearn.preprocessing import StandardScaler
 import os
 import pickle
+import random
 
-def train(dataset_name, num_independent_runs, save_dir, hyperparameters):
+def train(dataset_name, num_independent_runs, save_dir, hyperparameters, starting_generation=0):
 
-    for run in range(num_independent_runs):
+    generations = hyperparameters['niterations']
+    del hyperparameters['niterations']
+    
+    for run in range(starting_generation, num_independent_runs):
         X, y = load_dataset(dataset_name)
         
         scaler = StandardScaler()
         X = scaler.fit_transform(X)
 
-        generations = hyperparameters['niterations']
-        del hyperparameters['niterations']
-        model = PySRRegressor(**hyperparameters, niterations=1, warm_start=True)
+        model = PySRRegressor(**hyperparameters, niterations=1, warm_start=True, input_stream="devnull", turbo=True)
 
         os.makedirs(save_dir, exist_ok=True)
         
         for generation in range(generations):
-            model.fit(X, y)
+            start = random.randint(0, 999) * 1000
+            end = start + 1000
+            model.fit(X[start:end], y[start:end])
 
             # Extract best loss per generation
             eqns = model.equations_

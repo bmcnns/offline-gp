@@ -1,65 +1,26 @@
 experiments = [
-    #{
-    #    "dataset_name": "Minimal-Hopper-Expert-v5",
-    #    "independent_runs": 10,
-    #    "methods": ['MLP', 'Operon', 'PySR'],
-    #    "save_path": "models",
-    #},
     {
-        "dataset_name": "Minimal-Walker2d-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
-        "dataset_name": "Minimal-Swimmer-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
-        "dataset_name": "Minimal-HalfCheetah-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
+        "mode": "eval",
         "dataset_name": "Hopper-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
-        "dataset_name": "Walker2d-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
-        "dataset_name": "Swimmer-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
-    {
-        "dataset_name": "HalfCheetah-Expert-v5",
-        "independent_runs": 10,
-        "methods": ['MLP', 'Operon'],
-        "save_path": "models",
-    },
+        "model_folder": "models",
+        "video_folder": "videos",
+        "env_name": "Hopper-v5",
+        "methods": ['PySR'],
+        "seeds": [738491,204583,991627,458720,174392,618305,837154,265009,781463,549128]
+    }
 ]
 
-import methods.paretogp.train as paretogp
-import methods.operon.train as operon
-import methods.mlp.train as mlp
-import methods.pysr.train as pysr
+#import methods.paretogp.train as paretogp
+#import methods.mlp.train as mlp
+import methods.pysr as pysr
+import methods.operon as operon
 
 def experiment_runner(experiments):
     for experiment in experiments:
         for method in experiment['methods']:
-            print(f"Starting experiment using {method} on {experiment['dataset_name']}")
             
-            if method == 'MLP':
+
+            if experiment['mode'] == "train" and method == 'MLP':
                 parameters = {
                     'max_iter': 1000,
                     'hidden_layer_sizes': (256, 256),
@@ -69,7 +30,7 @@ def experiment_runner(experiments):
                     'learning_rate': 'constant',
                 }
                 runner = mlp.train
-            elif method == 'PySR':
+            elif experiment['mode'] == "train" and method == 'PySR':
                 parameters = {
                     'maxsize': 50,
                     'niterations': 1000,
@@ -79,7 +40,7 @@ def experiment_runner(experiments):
                     'elementwise_loss': "loss(prediction, target) = (prediction - target)^2"
                 }
                 runner = pysr.train
-            elif method == 'Operon':
+            elif experiment['mode'] == "train" and method == 'Operon':
                 parameters = {
                     'allowed_symbols': 'add,sub,mul,div,fmin,fmax,pow,ceil,floor,exp,cos,sin,constant,variable',
                     'offspring_generator': 'basic',
@@ -90,7 +51,7 @@ def experiment_runner(experiments):
                     'tournament_size': 3,
                 }
                 runner = operon.train
-            elif method == 'ParetoGP':
+            elif experiment['mode'] == "train" and method == 'ParetoGP':
                 parameters = {
                     'num_generations': 2,
                     'num_cascades': 3,
@@ -100,12 +61,33 @@ def experiment_runner(experiments):
                     'population_tournament_size': 5
                 }
                 runner = paretogp.train
+            elif experiment['mode'] == "eval" and method == 'MLP':
+                pass
+                #evaluator = mlp.evaluate
+            elif experiment['mode'] == "eval" and method == 'PySR':
+                evaluator = pysr.evaluate
+            elif experiment['mode'] == "eval" and method == 'Operon':
+                evaluator = operon.evaluate
+            elif experiment['mode'] == "eval" and method == 'ParetoGP':
+                #evaluator = paretogp.evaluate
+                pass
             else:
                 raise Exception("Unknown machine learning / symbolic regression method requested")
-            
-            runner(dataset_name=experiment['dataset_name'],
-                   num_independent_runs=experiment['independent_runs'],
-                   save_dir=f"{experiment['save_path']}/{method}/{experiment['dataset_name']}",
-                   hyperparameters=parameters)
+
+            if experiment['mode'] == "train":
+                print(f"Starting experiment using {method} on {experiment['dataset_name']}")
+                
+                runner(dataset_name=experiment['dataset_name'],
+                       num_independent_runs=experiment['independent_runs'],
+                       save_dir=f"{experiment['save_path']}/{method}/{experiment['dataset_name']}",
+                       hyperparameters=parameters)
+            else:
+                print(f"Evaluating {method} on {experiment['dataset_name']}")
+                
+                evaluator(dataset_name=experiment['dataset_name'],
+                          model_folder=experiment['model_folder'],
+                          video_folder=experiment['video_folder'],
+                          env_name=experiment['env_name'],
+                          seeds=experiment['seeds'])
 
 experiment_runner(experiments)
